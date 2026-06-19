@@ -1,0 +1,8 @@
+Array
+(
+    [action] => add
+    [title] => muzeyga borish
+    [date] => 1111-11-11
+    [time] => 12:34
+    [description] => Prosto aylanip borish
+)

@@ -3,7 +3,36 @@ session_start();
 if (!isset($_SESSION["registered"]) || $_SESSION["registered"] !== true) {
     header("Location: ./login.php");
     exit;
-} 
+}
+
+$reminders = json_decode(file_get_contents("../data/reminders.json"), true);
+
+file_put_contents("log.txt", print_r($_POST, true));
+
+if ($_SERVER['REQUEST_METHOD'] === "POST") {
+    if (empty($_POST["title"])) {
+        echo "<p color: red;> Titleni to'ldiring</p>";
+    }
+    if (empty($_POST["date"])) {
+        echo "<p color: red;> Date to'ldiring</p>";
+    }
+    if (empty($_POST["time"])) {
+        echo "<p color: red;> Time to'ldiring</p>";
+    }
+    if (empty($_POST["description"])) {
+        echo "<p color: red;> Descriptionni to'ldiring</p>";
+    }
+    $reminders[] = [
+        'name' => $_POST['title'],
+        'date' => $_POST['date'],
+        'time' => $_POST['time'],
+        'description' => $_POST['description']
+    ];
+}
+
+
+
+file_put_contents("../data/reminders.json", json_encode($reminders));
 
 
 ?>
@@ -57,7 +86,7 @@ if (!isset($_SESSION["registered"]) || $_SESSION["registered"] !== true) {
                     <h3 class="text-lg font-bold text-gray-700">Yangi eslatma qo'shish</h3>
                 </div>
 
-                <form method="POST" class="space-y-4">
+                <form method="POST" class="space-y-4" action="index.php">
                     <input type="hidden" name="action" value="add">
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -93,6 +122,7 @@ if (!isset($_SESSION["registered"]) || $_SESSION["registered"] !== true) {
                 </form>
             </div>
 
+
             <!-- Eslatmalar ro'yxati -->
             <div class="mb-8">
                 <div class="flex items-center justify-between mb-4">
@@ -101,147 +131,99 @@ if (!isset($_SESSION["registered"]) || $_SESSION["registered"] !== true) {
                             <i class="fas fa-list text-sm"></i>
                         </div>
                         <h3 class="text-lg font-bold text-gray-700">Mening eslatmalarim</h3>
-                        <span class="bg-blue-100 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">3 ta</span>
+                        <span class="bg-blue-100 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full"><?= count($reminders) ?> ta</span>
                     </div>
                     <button onclick="location.reload()" class="text-gray-400 hover:text-gray-600 transition-colors">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
 
-                <!-- Eslatma 1 -->
-                <div class="reminder-card bg-white rounded-2xl p-5 mb-4 border-l-4 border-blue-500 shadow-sm hover:shadow-xl transition-all">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
-                                    <i class="fas fa-briefcase"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-lg">Loyiha topshirig'ini yuborish</h4>
-                                    <p class="text-gray-600 text-sm mt-1">Muhim loyiha hujjatlarini tayyorlash va yuborish</p>
-                                    <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-calendar-alt text-blue-500"></i>
-                                            2026-06-20
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-clock text-purple-500"></i>
-                                            15:00
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-hourglass-start text-green-500"></i>
-                                            19.06.2026 14:30
-                                        </span>
-                                        <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-xs font-semibold">
-                                            <i class="fas fa-circle text-[6px] mr-1"></i>
-                                            Faol
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex gap-2 ml-12 md:ml-0">
-                            <button onclick="openEditModal()" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 rounded-xl text-sm font-semibold transition-all hover:scale-105">
-                                <i class="fas fa-edit mr-1"></i>
-                                Tahrirlash
-                            </button>
-                            <button onclick="confirmDelete()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all hover:scale-105">
-                                <i class="fas fa-trash-alt mr-1"></i>
-                                O'chirish
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            </div>
 
-                <!-- Eslatma 2 -->
-                <div class="reminder-card bg-white rounded-2xl p-5 mb-4 border-l-4 border-purple-500 shadow-sm hover:shadow-xl transition-all">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0">
-                                    <i class="fas fa-stethoscope"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-lg">Doktor bilan uchrashuv</h4>
-                                    <p class="text-gray-600 text-sm mt-1">Stomatologiya klinikasi, 3-qavat</p>
-                                    <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-calendar-alt text-blue-500"></i>
-                                            2026-06-21
+            <!-- Zamonaviy table dizayni -->
+            <div class="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                            <th class="px-6 py-4 text-left font-semibold rounded-tl-2xl">
+                                <i class="fas fa-hashtag mr-2"></i>№
+                            </th>
+                            <th class="px-6 py-4 text-left font-semibold">
+                                <i class="fas fa-tag mr-2"></i>Sarlavha
+                            </th>
+                            <th class="px-6 py-4 text-left font-semibold">
+                                <i class="fas fa-calendar-day mr-2"></i>Sana
+                            </th>
+                            <th class="px-6 py-4 text-left font-semibold">
+                                <i class="fas fa-clock mr-2"></i>Vaqt
+                            </th>
+                            <th class="px-6 py-4 text-left font-semibold">
+                                <i class="fas fa-align-left mr-2"></i>Tavsif
+                            </th>
+                            <th class="px-6 py-4 text-left font-semibold rounded-tr-2xl">
+                                <i class="fas fa-cog mr-2"></i>Amallar
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($reminders)): ?>
+                            <tr>
+                                <td colspan="6" class="text-center py-12 text-gray-400">
+                                    <i class="fas fa-inbox text-4xl block mb-3"></i>
+                                    <span class="text-lg">Hozircha eslatmalar mavjud emas</span>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($reminders as $i => $reminder): ?>
+                                <tr class="border-b border-gray-100 hover:bg-blue-50/50 transition-colors duration-200 <?= $i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50' ?>">
+                                    <td class="px-6 py-4 font-medium text-gray-700">
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
+                                            <?= $i + 1 ?>
                                         </span>
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-clock text-purple-500"></i>
-                                            10:30
+                                    </td>
+                                    <td class="px-6 py-4 font-semibold text-gray-800">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 inline-block"></span>
+                                            <?= $reminder['name'] ?>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-600">
+                                        <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium">
+                                            <i class="fas fa-calendar-alt text-blue-400"></i>
+                                            <?= $reminder['date'] ?>
                                         </span>
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-hourglass-start text-green-500"></i>
-                                            19.06.2026 12:15
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-600">
+                                        <span class="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-xs font-medium">
+                                            <i class="fas fa-clock text-purple-400"></i>
+                                            <?= $reminder['time'] ?>
                                         </span>
-                                        <span class="bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full text-xs font-semibold">
-                                            <i class="fas fa-circle text-[6px] mr-1"></i>
-                                            Tez orada
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex gap-2 ml-12 md:ml-0">
-                            <button onclick="openEditModal()" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 rounded-xl text-sm font-semibold transition-all hover:scale-105">
-                                <i class="fas fa-edit mr-1"></i>
-                                Tahrirlash
-                            </button>
-                            <button onclick="confirmDelete()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all hover:scale-105">
-                                <i class="fas fa-trash-alt mr-1"></i>
-                                O'chirish
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Eslatma 3 -->
-                <div class="reminder-card bg-white rounded-2xl p-5 border-l-4 border-green-500 shadow-sm hover:shadow-xl transition-all">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
-                                    <i class="fas fa-utensils"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-800 text-lg">Oilaviy kechki ovqat</h4>
-                                    <p class="text-gray-600 text-sm mt-1">Restoran bron qilingan, soat 19:00</p>
-                                    <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-calendar-alt text-blue-500"></i>
-                                            2026-06-22
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-clock text-purple-500"></i>
-                                            19:00
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-hourglass-start text-green-500"></i>
-                                            19.06.2026 10:00
-                                        </span>
-                                        <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-xs font-semibold">
-                                            <i class="fas fa-circle text-[6px] mr-1"></i>
-                                            Rejalashtirilgan
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex gap-2 ml-12 md:ml-0">
-                            <button onclick="openEditModal()" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 rounded-xl text-sm font-semibold transition-all hover:scale-105">
-                                <i class="fas fa-edit mr-1"></i>
-                                Tahrirlash
-                            </button>
-                            <button onclick="confirmDelete()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-all hover:scale-105">
-                                <i class="fas fa-trash-alt mr-1"></i>
-                                O'chirish
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-500 max-w-[150px] truncate">
+                                        <?= !empty($reminder['description']) ? $reminder['description'] : '<span class="text-gray-300 text-sm">—</span>' ?>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <!-- Edit tugmasi -->
+                                            <a href="edit.php?id=<?= $i ?>" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                                <i class="fas fa-pen-to-square"></i>
+                                                Tahrirlash
+                                            </a>
+                                            <!-- Delete form -->
+                                            <form action="delete.php" method="POST" class="inline" onsubmit="return confirm('Rostdan ham ushbu eslatmani o\'chirmoqchimisiz?');">
+                                                <input type="hidden" name="id" value="<?= $i ?>">
+                                                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                                    <i class="fas fa-trash-can"></i>
+                                                    O'chirish
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                        <?php endif ?>
+                    </tbody>
+                </table>
             </div>
 
             <!-- Tugmalar guruhi -->
