@@ -7,7 +7,6 @@ if (!isset($_SESSION["registered"]) || $_SESSION["registered"] !== true) {
 
 $reminders = json_decode(file_get_contents("../data/reminders.json"), true);
 
-file_put_contents("log.txt", print_r($_POST, true));
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     if (empty($_POST["title"])) {
@@ -210,9 +209,9 @@ file_put_contents("../data/reminders.json", json_encode($reminders));
                                                 Tahrirlash
                                             </a>
                                             <!-- Delete form -->
-                                            <form action="delete.php" method="POST" class="inline" onsubmit="return confirm('Rostdan ham ushbu eslatmani o\'chirmoqchimisiz?');">
+                                            <form action="deletereminder.php" method="POST" class="inline" onsubmit="return confirm('Rostdan ham ushbu eslatmani o\'chirmoqchimisiz?');">
                                                 <input type="hidden" name="id" value="<?= $i ?>">
-                                                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                                <button href="delete.php?id=<?= $i['id'] ?>" type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
                                                     <i class="fas fa-trash-can"></i>
                                                     O'chirish
                                                 </button>
