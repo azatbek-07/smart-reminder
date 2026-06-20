@@ -1,41 +1,71 @@
 <?php
 session_start();
+
 if (!isset($_SESSION["registered"]) || $_SESSION["registered"] !== true) {
     header("Location: ./login.php");
     exit;
 }
 
-$reminders = json_decode(file_get_contents("../data/reminders.json"), true);
+$file = "../data/reminders.json";
 
+// 🔥 JSON SAFE LOAD
+$reminders = [];
 
-if ($_SERVER['REQUEST_METHOD'] === "POST") {
-    if (empty($_POST["title"])) {
-        echo "<p color: red;> Titleni to'ldiring</p>";
+if (file_exists($file)) {
+    $data = json_decode(file_get_contents($file), true);
+    if (is_array($data)) {
+        $reminders = $data;
     }
-    if (empty($_POST["date"])) {
-        echo "<p color: red;> Date to'ldiring</p>";
-    }
-    if (empty($_POST["time"])) {
-        echo "<p color: red;> Time to'ldiring</p>";
-    }
-    if (empty($_POST["description"])) {
-        echo "<p color: red;> Descriptionni to'ldiring</p>";
-    }
-    $reminders[] = [
-        'name' => $_POST['title'],
-        'date' => $_POST['date'],
-        'time' => $_POST['time'],
-        'description' => $_POST['description']
-    ];
 }
 
+/* =========================
+   ADD + EDIT LOGIC
+========================= */
 
+if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
-file_put_contents("../data/reminders.json", json_encode($reminders));
+    $action = $_POST['action'] ?? 'add';
 
+    // ================= ADD =================
+    if ($action === 'add') {
 
+        if (!empty($_POST["title"]) && !empty($_POST["date"]) && !empty($_POST["time"])) {
+
+            $reminders[] = [
+                'id' => uniqid(),
+                'name' => $_POST['title'],
+                'date' => $_POST['date'],
+                'time' => $_POST['time'],
+                'description' => $_POST['description'] ?? ''
+            ];
+
+            file_put_contents($file, json_encode($reminders));
+        }
+
+    }
+
+    // ================= EDIT =================
+    if ($action === 'edit') {
+
+        foreach ($reminders as &$r) {
+            if ($r['id'] == $_POST['id']) {
+
+                $r['name'] = $_POST['title'];
+                $r['date'] = $_POST['date'];
+                $r['time'] = $_POST['time'];
+                $r['description'] = $_POST['description'];
+
+                break;
+            }
+        }
+
+        file_put_contents($file, json_encode($reminders));
+    }
+
+    header("Location: index.php");
+    exit;
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="uz">
 
@@ -94,24 +124,32 @@ file_put_contents("../data/reminders.json", json_encode($reminders));
                             <input type="text" name="title" placeholder="Sarlavha" required
                                 class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none input-focus transition-all">
                         </div>
+
+                        <!-- REAL DATE -->
                         <div class="relative">
                             <i class="fas fa-calendar-day absolute left-3 top-3 text-gray-400"></i>
                             <input type="date" name="date" required
+                                value="<?= date('Y-m-d') ?>"
                                 class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none input-focus transition-all">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <!-- REAL TIME -->
                         <div class="relative">
                             <i class="fas fa-clock absolute left-3 top-3 text-gray-400"></i>
                             <input type="time" name="time" required
+                                value="<?= date('H:i') ?>"
                                 class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none input-focus transition-all">
                         </div>
+
                         <div class="relative">
                             <i class="fas fa-align-left absolute left-3 top-3 text-gray-400"></i>
                             <input type="text" name="description" placeholder="Tavsif (ixtiyoriy)"
                                 class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none input-focus transition-all">
                         </div>
+
                     </div>
 
                     <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-6 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -204,14 +242,14 @@ file_put_contents("../data/reminders.json", json_encode($reminders));
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-2">
                                             <!-- Edit tugmasi -->
-                                            <a href="edit.php?id=<?= $i ?>" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                            <a href="editreminder.php?id=<?= $reminder['id'] ?>" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition-colors">
                                                 <i class="fas fa-pen-to-square"></i>
                                                 Tahrirlash
                                             </a>
                                             <!-- Delete form -->
                                             <form action="deletereminder.php" method="POST" class="inline" onsubmit="return confirm('Rostdan ham ushbu eslatmani o\'chirmoqchimisiz?');">
-                                                <input type="hidden" name="id" value="<?= $i ?>">
-                                                <button href="delete.php?id=<?= $i['id'] ?>" type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                                <input type="hidden" name="id" value="<?= $reminder['id'] ?>">
+                                                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors">
                                                     <i class="fas fa-trash-can"></i>
                                                     O'chirish
                                                 </button>

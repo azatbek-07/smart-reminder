@@ -6,15 +6,26 @@ if (!isset($_SESSION['registered']) || $_SESSION['registered'] !== true) {
     exit;
 }
 
-$id = $_GET['id'] ?? null;
+$id = $_POST['id'] ?? null;
 
-$data = json_decode(file_get_contents('../data/reminders.json'), true);
+$file = '../data/reminders.json';
+
+$data = json_decode(file_get_contents($file), true);
+
+if (!is_array($data)) {
+    $data = [];
+}
 
 foreach ($data as $i => $reminder) {
-    if( $reminder['id'] == $id) {
+    if (isset($reminder['id']) && $reminder['id'] == $id) {
         unset($data[$i]);
-        file_put_contents('../data/reminders.json', json_encode(array_values($data)));
-        header("Location: index.php");
-        exit;
+        break;
     }
 }
+
+$data = array_values($data);
+
+file_put_contents($file, json_encode($data));
+
+header("Location: index.php");
+exit;
